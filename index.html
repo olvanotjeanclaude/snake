@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Snake Game</title>
+    <style>
+        canvas {
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        // Initialize the canvas and context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set up the game variables
+        const gridSize = 20;
+        let snake = [{ x: 0, y: 3 }];
+        let food = { x: 15, y: 10 };
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+
+        // Main game loop
+        function gameLoop() {
+            clearCanvas();
+            drawFood();
+            moveSnake();
+            drawSnake();
+
+            if (isSnakeCollision() || isWallCollision()) {
+                endGame();
+                return;
+            }
+
+            if (isFoodCollision()) {
+                score++;
+                generateFood();
+                increaseSnake();
+            }
+
+            setTimeout(gameLoop, 150);
+        }
+
+        // Clear the canvas
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Draw the snake
+        function drawSnake() {
+            snake.forEach((segment) => {
+                ctx.fillStyle = '#333';
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            });
+        }
+
+        // Move the snake
+        function moveSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+            snake.pop();
+        }
+
+        // Change the direction of the snake
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            const keyPressed = event.keyCode;
+
+            const goingUp = dy === -1;
+            const goingDown = dy === 1;
+            const goingLeft = dx === -1;
+            const goingRight = dx === 1;
+
+            if (keyPressed === LEFT_KEY && !goingRight) {
+                dx = -1;
+                dy = 0;
+            }
+
+            if (keyPressed === RIGHT_KEY && !goingLeft) {
+                dx = 1;
+                dy = 0;
+            }
+
+            if (keyPressed === UP_KEY && !goingDown) {
+                dx = 0;
+                dy = -1;
+            }
+
+            if (keyPressed === DOWN_KEY && !goingUp) {
+                dx = 0;
+                dy = 1;
+            }
+        }
+
+        // Generate new food location
+        function generateFood() {
+            const maxX = canvas.width / gridSize;
+            const maxY = canvas.height / gridSize;
+            food = {
+                x: Math.floor(Math.random() * maxX),
+                y: Math.floor(Math.random() * maxY),
+            };
+        }
+
+        // Draw the food
+        function drawFood() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+        }
+
+        // Check if the snake collided with itself
+        function isSnakeCollision() {
+            const [head, ...body] = snake;
+            return body.some((segment) => segment.x === head.x && segment.y === head.y);
+
+        }
+
+        // Check if the snake collided with the wall
+        function isWallCollision() {
+            const [head] = snake;
+            const maxX = canvas.width / gridSize;
+            const maxY = canvas.height / gridSize;
+            return (
+                head.x < 0 || head.y < 0 || head.x >= maxX || head.y >= maxY
+            );
+        }
+
+        // Check if the snake collided with the food
+        function isFoodCollision() {
+            const [head] = snake;
+            return head.x === food.x && head.y === food.y;
+        }
+
+        // Increase the size of the snake
+        function increaseSnake() {
+            const [head] = snake;
+            const newSegment = { x: head.x + dx, y: head.y + dy };
+            snake.unshift(newSegment);
+        }
+
+        // End the game
+        function endGame() {
+            alert(`Game Over! Your score is ${score}`);
+            resetGame();
+        }
+
+        // Reset the game
+        function resetGame() {
+            snake = [{ x: 8, y: 8 }];
+            food = { x: 15, y: 10 };
+            dx = 1;
+            dy = 0;
+            score = 0;
+        }
+
+        // Event listener for keyboard arrow keys
+        document.addEventListener('keydown', changeDirection);
+
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+
+</html>
